@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-07-11T19:15:50+00:00",
+  "query": "s-works tarmac sl8",
+  "size_hint": "56",
+  "offers": [],
+  "manual_links": [
+    {
+      "name": "leboncoin",
+      "country": "FR",
+      "url": "https://www.leboncoin.fr/recherche?text=s-works%20tarmac%20sl8"
+    },
+    {
+      "name": "Troc-Vélo",
+      "country": "FR",
+      "url": "https://www.troc-velo.com/fr-fr/velo-route/q/s-works%20tarmac%20sl8"
+    },
+    {
+      "name": "Kleinanzeigen",
+      "country": "DE",
+      "url": "https://www.kleinanzeigen.de/s-s-works-tarmac-sl8/k0"
+    },
+    {
+      "name": "buycycle",
+      "country": "EU",
+      "url": "https://buycycle.com/fr-fr/shop?search=s-works%20tarmac%20sl8"
+    },
+    {
+      "name": "Specialized outlet FR",
+      "country": "FR",
+      "url": "https://www.specialized.com/fr/fr/c/velosenpromotion"
+    }
+  ]
+}
