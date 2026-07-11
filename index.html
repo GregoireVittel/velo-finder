@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velo Finder — S-Works Tarmac SL8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --carbon:#15171b; --panel:#1d2026; --line:#2b2f37;
+    --ink:#eef0f2; --dim:#8b919c;
+    --red:#d8232a; --drop:#3ecf8e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--carbon);color:var(--ink);
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    padding:20px 16px 60px;max-width:760px;margin:0 auto}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--dim);
+    letter-spacing:.12em;text-transform:uppercase}
+  h1{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:44px;
+    line-height:1;text-transform:uppercase;letter-spacing:.01em;margin:6px 0 2px}
+  h1 .sl8{color:var(--red)}
+  #updated{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--dim);margin-bottom:24px}
+
+  /* signature: best-price race plate */
+  .plate{border:2px solid var(--ink);border-radius:10px;background:var(--panel);
+    padding:18px 20px;margin-bottom:28px;position:relative;overflow:hidden;display:none}
+  .plate.show{display:block}
+  .plate::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--red)}
+  .plate .label{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--dim);
+    letter-spacing:.14em;text-transform:uppercase}
+  .plate .price{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:56px;line-height:1.05}
+  .plate .meta{font-size:14px;color:var(--dim);margin-top:2px}
+  .plate a{color:var(--ink)}
+
+  .filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .chip{font-family:"IBM Plex Mono",monospace;font-size:13px;background:none;
+    color:var(--dim);border:1px solid var(--line);border-radius:999px;
+    padding:6px 14px;cursor:pointer}
+  .chip.on{color:var(--ink);border-color:var(--ink)}
+  .chip:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+  .offer{display:block;text-decoration:none;color:inherit;background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+  .offer:hover{border-color:var(--dim)}
+  .offer .top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+  .offer .title{font-size:15px;font-weight:600;line-height:1.35}
+  .offer .price{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:17px;white-space:nowrap}
+  .offer .sub{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--dim);margin-top:6px;
+    display:flex;gap:14px;flex-wrap:wrap}
+  .size-tag{color:var(--drop)}
+
+  .empty{border:1px dashed var(--line);border-radius:10px;padding:28px 20px;
+    text-align:center;color:var(--dim);font-size:14px}
+
+  h2{font-family:"Barlow Condensed",sans-serif;font-weight:500;font-size:22px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin:36px 0 12px}
+  .links{display:flex;flex-direction:column;gap:8px}
+  .links a{display:flex;justify-content:space-between;text-decoration:none;color:var(--ink);
+    font-size:15px;padding:12px 16px;border:1px solid var(--line);border-radius:10px}
+  .links a:hover{border-color:var(--dim)}
+  .links .cc{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--dim)}
+  @media (prefers-reduced-motion:no-preference){
+    .offer,.plate{transition:border-color .15s ease}
+  }
+</style>
+</head>
+<body>
+  <p class="eyebrow">Velo Finder · EU scan</p>
+  <h1>S-Works Tarmac <span class="sl8">SL8</span></h1>
+  <p id="updated">loading…</p>
+
+  <div class="plate" id="best">
+    <p class="label">Best price found</p>
+    <p class="price" id="bestPrice"></p>
+    <p class="meta" id="bestMeta"></p>
+  </div>
+
+  <div class="filters" id="filters"></div>
+  <div id="list"><p class="empty">Loading offers…</p></div>
+
+  <h2>Search manually</h2>
+  <p class="eyebrow" style="margin-bottom:10px">Marketplaces that block scrapers — one tap each</p>
+  <div class="links" id="manual"></div>
+
+<script>
+const fmt = n => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
+let offers = [], sizeFilter = null;
+
+function render(){
+  const list = document.getElementById('list');
+  const shown = sizeFilter ? offers.filter(o => o.size === sizeFilter) : offers;
+  if(!shown.length){
+    list.innerHTML = '<p class="empty">No offers matched this scan. Check the manual search links below, or add a shop adapter in scraper.py.</p>';
+    return;
+  }
+  list.innerHTML = shown.map(o => `
+    <a class="offer" href="${o.url}" target="_blank" rel="noopener">
+      <div class="top">
+        <span class="title">${o.title}</span>
+        <span class="price">${o.price_eur ? fmt(o.price_eur) : o.price + ' ' + o.currency}</span>
+      </div>
+      <div class="sub">
+        <span>${o.shop} · ${o.country}</span>
+        ${o.size ? `<span class="size-tag">size ${o.size}</span>` : ''}
+      </div>
+    </a>`).join('');
+}
+
+fetch('offers.json?t=' + Date.now())
+  .then(r => r.json())
+  .then(d => {
+    offers = d.offers || [];
+    document.getElementById('updated').textContent =
+      'last scan ' + new Date(d.generated_at).toLocaleString('fr-FR');
+
+    if(offers.length && offers[0].price_eur){
+      const b = offers[0];
+      document.getElementById('best').classList.add('show');
+      document.getElementById('bestPrice').textContent = fmt(b.price_eur);
+      document.getElementById('bestMeta').innerHTML =
+        `${b.shop} · ${b.country}${b.size ? ' · size ' + b.size : ''} — <a href="${b.url}" target="_blank" rel="noopener">open offer</a>`;
+    }
+
+    const sizes = [...new Set(offers.map(o => o.size).filter(Boolean))].sort();
+    const fl = document.getElementById('filters');
+    if(sizes.length){
+      fl.innerHTML = `<button class="chip on" data-s="">All</button>` +
+        sizes.map(s => `<button class="chip${s===d.size_hint?'':''}" data-s="${s}">${s}</button>`).join('');
+      fl.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+        fl.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+        c.classList.add('on');
+        sizeFilter = c.dataset.s || null;
+        render();
+      }));
+    }
+
+    document.getElementById('manual').innerHTML = (d.manual_links || []).map(l =>
+      `<a href="${l.url}" target="_blank" rel="noopener"><span>${l.name}</span><span class="cc">${l.country} ↗</span></a>`).join('');
+
+    render();
+  })
+  .catch(() => {
+    document.getElementById('updated').textContent = 'offers.json not found — run scraper.py first';
+    document.getElementById('list').innerHTML = '<p class="empty">Run <code>python scraper.py</code> to generate the first scan.</p>';
+  });
+</script>
+</body>
+</html>
